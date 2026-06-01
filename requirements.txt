@@ -1,0 +1,3 @@
+torch==2.12.0      # PyTorch — all pytorch.py implementations
+jax==0.10.1        # JAX — all jax.py implementations
+jaxlib==0.10.1     # XLA backend required by JAX
