@@ -20,6 +20,8 @@ Because of these limitations, modern LLMs often avoid APE.
 
 ### RoPE (Rotary Positional Embedding)
 
+RoPE(x)= x ⋅ cos(θ) + rotate_half(x) ⋅ sin(θ)
+
 Modern transformer architectures commonly use RoPE, introduced to better encode relative position information.
 
 Unlike APE, RoPE does not add positional vectors to embeddings. Instead, it modifies the query and key vectors inside the attention mechanism.
@@ -46,7 +48,7 @@ Key vectors (K)
 
 before the dot-product attention is computed.
 
-Why RoPE is used in modern LLMs
+**Why RoPE is used in modern LLMs?**
 
 RoPE has several advantages:
 
