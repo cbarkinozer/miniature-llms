@@ -1,0 +1,9 @@
+# Residual Block
+
+A Residual Block is a fundamental building unit in modern deep neural networks that enables stable training of very deep architectures by introducing skip connections around nonlinear transformations. Instead of forcing each stacked layer to learn a completely new representation from scratch, a residual block reformulates the learning problem as learning a residual function, where the block outputs the input plus a learned transformation of that input.
+
+Mathematically, rather than computing a direct mapping ( y = F(x) ), a residual block computes ( y = x + F(x) ), where ( x ) is the input and ( F(x) ) is a sequence of operations such as linear projections, normalization, and activation functions. The skip connection ensures that gradients can flow directly through the identity path during backpropagation, which mitigates the vanishing gradient problem that typically arises in deep networks.
+
+Before residual connections were introduced in ResNet-style architectures, deep networks were difficult to optimize effectively because adding more layers often degraded performance rather than improving it. Training became unstable as gradients diminished across many layers, limiting practical network depth. Residual blocks resolved this issue by providing an explicit shortcut path for information and gradients, allowing networks to scale to hundreds or even thousands of layers while remaining trainable.
+
+In transformer-based architectures, residual blocks are used around attention and feed-forward sublayers, ensuring that each transformation refines the representation rather than overwriting it. This design stabilizes optimization, improves convergence, and preserves information flow throughout the network depth, making residual connections a core component of modern deep learning systems.

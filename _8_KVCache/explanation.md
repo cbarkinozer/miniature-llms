@@ -1,0 +1,7 @@
+# KV Cache
+
+The KV Cache (Key-Value Cache) is an inference optimization (training always recomputes full attention over complete sequences) used in autoregressive transformer models to avoid redundant computation during sequential token generation. In a standard attention mechanism without caching, the model recomputes the keys and values for all previously seen tokens at every generation step. This leads to increasing computational cost as the sequence grows, making inference inefficient for long outputs.
+
+With KV caching, the keys and values computed at each layer for previous tokens are stored and reused in subsequent decoding steps. During generation of a new token, only the query for the current token is computed, while the cached keys and values from earlier tokens are retrieved and reused in the attention calculation. This avoids repeated recomputation of the same projections and significantly reduces the per-token complexity during inference.
+
+Before KV caching was introduced, transformer inference scaled poorly with sequence length because each new token required reprocessing the entire context through all attention layers. By introducing the KV Cache, the model achieves much faster autoregressive decoding, enabling practical real-time text generation and making long-context inference significantly more efficient. This optimization is especially important in large language models where inference cost and latency are critical constraints.

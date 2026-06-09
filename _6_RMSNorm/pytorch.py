@@ -1,7 +1,7 @@
 import torch 
 import torch.nn as nn 
 
-class RMNSNorm(nn.Module):
+class RMSNorm(nn.Module):
     def __init__(self, model_dimension:int, epsilon: float = 1e-6):
         super().__init__()
         self.epsilon = epsilon
