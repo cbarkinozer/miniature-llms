@@ -4,19 +4,17 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class SlidingWindowAttention(nn.Module):
+class ALiBiAttention(nn.Module):
     def __init__(
         self,
         model_dimension: int,
         head_count: int,
-        window_size: int,
     ):
         super().__init__()
 
         assert model_dimension % head_count == 0
 
         self.head_count = head_count
-        self.window_size = window_size
         self.head_dimension = (
             model_dimension // head_count
         )
@@ -43,6 +41,20 @@ class SlidingWindowAttention(nn.Module):
             model_dimension,
             model_dimension,
             bias=False,
+        )
+
+        # Simple ALiBi slopes
+        slopes = torch.tensor(
+            [
+                1.0 / (2 ** (i / head_count))
+                for i in range(head_count)
+            ],
+            dtype=torch.float32,
+        )
+
+        self.register_buffer(
+            "slopes",
+            slopes,
         )
 
     def forward(
@@ -99,28 +111,32 @@ class SlidingWindowAttention(nn.Module):
         )
 
 
-        # Create the sliding window mask
+        # Build ALiBi bias
 
         positions = torch.arange(
             sequence_length,
             device=input_tensor.device,
         )
 
-        distance = (
-            positions.unsqueeze(1)
-            - positions.unsqueeze(0)
-        ).abs()
+        # Relative distances
+        relative_distance = (
+            positions.unsqueeze(0)
+            - positions.unsqueeze(1)
+        ).abs().float()
 
-        window_mask = (
-            distance <= self.window_size
+        # Shape:
+        # (head_count, sequence_length, sequence_length)
+        alibi_bias = (
+            -self.slopes[:, None, None]
+            * relative_distance
         )
 
-        attention_scores = attention_scores.masked_fill(
-            ~window_mask,
-            float("-inf"),
+        # Broadcast across batch dimension
+        attention_scores = (
+            attention_scores
+            + alibi_bias.unsqueeze(0)
         )
 
-        # Optional external mask (e.g. padding mask)
         if attention_mask is not None:
             attention_scores = attention_scores.masked_fill(
                 attention_mask == 0,

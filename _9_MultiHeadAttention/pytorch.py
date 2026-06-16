@@ -4,19 +4,17 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class SlidingWindowAttention(nn.Module):
+class MultiHeadAttention(nn.Module):
     def __init__(
         self,
         model_dimension: int,
         head_count: int,
-        window_size: int,
     ):
         super().__init__()
 
         assert model_dimension % head_count == 0
 
         self.head_count = head_count
-        self.window_size = window_size
         self.head_dimension = (
             model_dimension // head_count
         )
@@ -50,6 +48,8 @@ class SlidingWindowAttention(nn.Module):
         input_tensor,
         attention_mask=None,
     ):
+        # input_tensor shape:
+        # (batch_size, sequence_length, model_dimension)
 
         (
             batch_size,
@@ -98,33 +98,12 @@ class SlidingWindowAttention(nn.Module):
             / math.sqrt(self.head_dimension)
         )
 
-
-        # Create the sliding window mask
-
-        positions = torch.arange(
-            sequence_length,
-            device=input_tensor.device,
-        )
-
-        distance = (
-            positions.unsqueeze(1)
-            - positions.unsqueeze(0)
-        ).abs()
-
-        window_mask = (
-            distance <= self.window_size
-        )
-
-        attention_scores = attention_scores.masked_fill(
-            ~window_mask,
-            float("-inf"),
-        )
-
-        # Optional external mask (e.g. padding mask)
         if attention_mask is not None:
-            attention_scores = attention_scores.masked_fill(
-                attention_mask == 0,
-                float("-inf"),
+            attention_scores = (
+                attention_scores.masked_fill(
+                    attention_mask == 0,
+                    float("-inf"),
+                )
             )
 
         attention_weights = F.softmax(

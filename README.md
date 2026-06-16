@@ -34,7 +34,7 @@ miniature-llms/
     └── ...
 ```
 
-**Numbered component folders** — each covers one architectural concept. Numbers are identifiers, not a strict learning order.
+**Numbered component folders** — each covers one architectural concept. The numbers reflect the recommended learning order: read and implement them in sequence, since later components build on earlier ones (e.g. YaRN builds on RoPE, KV Cache builds on Causal Multihead Attention).
 
 **`explanation.md`** — verbal, intuitive explanation of the concept: what it does, why it exists, what it improves over the alternative, and what subtle things to be aware of. Written at the conceptual level so it does not drift as implementations evolve.
 
@@ -66,17 +66,26 @@ Tensors flow as `(batch_size, seq_len, model_dim)` through all sequence-level co
 |---|---|---|
 | 1 | BytePairEncoding Tokenization | Learns a vocabulary by merging frequent character pairs |
 | 2 | Token Embedding | Maps token ids to dense vectors |
-| 3 | RoPE | Rotary positional encoding — encodes position into Q and K |
-| 4 | YaRN | Extends RoPE to longer contexts than it was trained on |
-| 5 | SWiGLU | Gated activation function used in feed-forward blocks |
-| 6 | RMSNorm | Simpler, faster alternative to LayerNorm |
-| 7 | Causal Multihead Attention | Scaled dot-product attention with causal mask |
-| 8 | KV Cache | Caches past K/V tensors to avoid recomputation at inference |
-| 9 | Residual Block | Wraps a sublayer with a skip connection |
-| 10 | Grouped Query Attention | Shares K/V heads across groups of Q heads |
-| 11 | Mixture of Experts | Routes tokens to different feed-forward experts |
-| 12 | Flash Attention | IO-aware exact attention (standalone — not wired into models at toy scale) |
-| 13 | Mamba State Space | Selective state space model as an alternative to attention |
+| 3 | Sinusoidal Embeddings | Original fixed sin/cos positional encoding |
+| 4 | RoPE | Rotary positional encoding — encodes position into Q and K |
+| 5 | YaRN | Extends RoPE to longer contexts than it was trained on |
+| 6 | AliBi | Positional bias added to attention scores, no position embeddings needed |
+| 7 | RMSNorm | Simpler, faster alternative to LayerNorm |
+| 8 | SWiGLU | Gated activation function used in feed-forward blocks |
+| 9 | Multi-Head Attention | Scaled dot-product attention with multiple heads (bidirectional) |
+| 10 | Causal Multihead Attention | Multi-Head Attention with a causal mask for autoregressive generation |
+| 11 | KV Cache | Caches past K/V tensors to avoid recomputation at inference |
+| 12 | QK-Norm | Normalizes queries/keys before attention for training stability |
+| 13 | Grouped Query Attention | Shares K/V heads across groups of Q heads |
+| 14 | Multi-Head Latent Attention | Compresses K/V into a shared low-rank latent, reconstructed per head |
+| 15 | Sliding Window Attention | Restricts attention to a fixed-size local window |
+| 16 | Cross Attention | Queries from one sequence attend to keys/values from another |
+| 17 | Flash Attention | IO-aware exact attention (standalone — not wired into models at toy scale) |
+| 18 | Mamba State Space | Selective state space model as an alternative to attention |
+| 19 | Residual Block | Wraps a sublayer with a skip connection |
+| 20 | Mixture of Experts | Routes tokens to different feed-forward experts |
+| 21 | Shared Experts | Always-active experts used alongside routed experts in MoE |
+| 22 | Multi-Token Prediction | Predicts multiple future tokens per step instead of just the next one |
 
 ---
 
@@ -86,7 +95,7 @@ Tensors flow as `(batch_size, seq_len, model_dim)` through all sequence-level co
 |---|---|
 | qwen-3.5-4B | RoPE, GQA, SWiGLU, RMSNorm, KV Cache |
 | deepseek-v4 | MoE, GQA, RoPE, RMSNorm |
-| kimi-k2 | MoE, MLA (multi-head latent attention) |
+| kimi-k2 | MoE, Multi-Head Latent Attention |
 | minimax-m3 | Hybrid attention + Mamba |
 | glm-5 | RoPE, GQA, SWiGLU |
 

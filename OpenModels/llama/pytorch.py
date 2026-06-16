@@ -8,11 +8,11 @@ import torch
 import torch.nn as nn
 
 from _2_TokenEmbedding.pytorch import TokenEmbedding
-from _9_ResidualBlock.pytorch import TransformerBlock
-from _6_RMSNorm.pytorch import RMSNorm
+from _21_ResidualBlock.pytorch import TransformerBlock
+from _7_RMSNorm.pytorch import RMSNorm
 
 
-class GPT2(nn.Module):
+class Llama(nn.Module):
     def __init__(
         self,
         vocabulary_size: int,
@@ -26,7 +26,7 @@ class GPT2(nn.Module):
 
         self.token_embedding = TokenEmbedding(
             vocabulary_size=vocabulary_size,
-            model_dimension=model_dimension
+            embedding_dimension=model_dimension
         )
 
         self.layers = nn.ModuleList([
