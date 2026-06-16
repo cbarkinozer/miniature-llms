@@ -38,7 +38,7 @@ miniature-llms/
 
 **`explanation.md`** — verbal, intuitive explanation of the concept: what it does, why it exists, what it improves over the alternative, and what subtle things to be aware of. Written at the conceptual level so it does not drift as implementations evolve.
 
-**`OpenModels/`** — full model architectures assembled from the components above. Each model file reads like a recipe: you can see at a glance which components were chosen and how they are wired together. Example: `qwen-3.5-4B` uses `CausalMultiheadAttention` with `RoPE` and `GroupedQueryAttention`, while a Mamba-based model replaces attention with `MambaStateSpace`.
+**`OpenModels/`** — full model architectures assembled from the components above. Each model file reads like a recipe: you can see at a glance which components were chosen and how they are wired together. Example: `llama` uses `CausalMultiheadAttention` with `RoPE` wrapped in plain `ResidualBlock`s, while `deepseek-v4` interleaves `MultiHeadLatentAttention` with `SparseTokenSelectionAttention` and wraps everything in `ManifoldConstrainedHyperConnections` instead.
 
 ---
 
@@ -79,13 +79,16 @@ Tensors flow as `(batch_size, seq_len, model_dim)` through all sequence-level co
 | 13 | Grouped Query Attention | Shares K/V heads across groups of Q heads |
 | 14 | Multi-Head Latent Attention | Compresses K/V into a shared low-rank latent, reconstructed per head |
 | 15 | Sliding Window Attention | Restricts attention to a fixed-size local window |
-| 16 | Cross Attention | Queries from one sequence attend to keys/values from another |
-| 17 | Flash Attention | IO-aware exact attention (standalone — not wired into models at toy scale) |
-| 18 | Mamba State Space | Selective state space model as an alternative to attention |
-| 19 | Residual Block | Wraps a sublayer with a skip connection |
-| 20 | Mixture of Experts | Routes tokens to different feed-forward experts |
-| 21 | Shared Experts | Always-active experts used alongside routed experts in MoE |
-| 22 | Multi-Token Prediction | Predicts multiple future tokens per step instead of just the next one |
+| 16 | Sparse Token-Selection Attention | A lightweight indexer scores past tokens; attention runs only over the top-k (DeepSeek's DSA / MiniMax's MSA) |
+| 17 | Cross Attention | Queries from one sequence attend to keys/values from another |
+| 18 | Flash Attention | IO-aware exact attention (standalone — not wired into models at toy scale) |
+| 19 | Mamba State Space | Selective state space model as an alternative to attention |
+| 20 | Gated DeltaNet | Delta-rule fast-weight linear attention, gated for content-dependent forgetting |
+| 21 | Residual Block | Wraps a sublayer with a skip connection |
+| 22 | Manifold-Constrained Hyper-Connections | Multi-stream residual connections constrained to a doubly-stochastic mixing matrix for stability |
+| 23 | Mixture of Experts | Routes tokens to different feed-forward experts |
+| 24 | Shared Experts | Always-active experts used alongside routed experts in MoE |
+| 25 | Multi-Token Prediction | Predicts multiple future tokens per step instead of just the next one |
 
 ---
 
@@ -93,11 +96,11 @@ Tensors flow as `(batch_size, seq_len, model_dim)` through all sequence-level co
 
 | Model | Key components used |
 |---|---|
-| qwen-3.5-4B | RoPE, GQA, SWiGLU, RMSNorm, KV Cache |
-| deepseek-v4 | MoE, GQA, RoPE, RMSNorm |
-| kimi-k2 | MoE, Multi-Head Latent Attention |
-| minimax-m3 | Hybrid attention + Mamba |
-| glm-5 | RoPE, GQA, SWiGLU |
+| qwen-3.5-4B | Dense (no MoE); 8x(3x Gated DeltaNet -> FFN, 1x GQA Attention -> FFN); SWiGLU, RMSNorm |
+| deepseek-v4 | MoE; Multi-Head Latent Attention and Sparse Token-Selection Attention (DSA) interleaved across layers; Manifold-Constrained Hyper-Connections instead of plain residuals; RMSNorm |
+| glm-5 | MoE; Multi-Head Latent Attention and Sparse Token-Selection Attention interleaved across layers (GLM calls it Dynamic Sparse Attention); plain residual connections; RMSNorm |
+| kimi-k3 | MoE; Moonshot's previewed "Kimi Linear" pattern — 3x Gated DeltaNet (modeling Kimi Delta Attention) per 1x global Multi-Head Latent Attention, repeated; RMSNorm. K3 itself is unreleased — built from K2's MoE+MLA foundation plus the published Kimi Linear paper |
+| minimax-m3 | Dense (no MoE); Grouped Query Attention backbone with Sparse Token-Selection Attention interleaved (MiniMax's MSA, applied to real KV instead of a compressed latent — M3 does not use MLA); SWiGLU, RMSNorm |
 
 ---
 
